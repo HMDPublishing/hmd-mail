@@ -31,7 +31,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     VITE_PUBLIC_APP_URL=http://REPLACE-APP-URL.com
 
 # Build the application
-RUN cd apps/mail && pnpm run build
+RUN cd apps/mail && NODE_OPTIONS="--max-old-space-size=1536" pnpm run build
 
 # ========================================
 # Runner Stage: Production Environment
