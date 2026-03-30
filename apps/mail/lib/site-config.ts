@@ -1,6 +1,6 @@
-const TITLE = 'Zero';
+const TITLE = 'HMD Mail';
 const DESCRIPTION =
-  'Experience email the way you want with 0 - the first open source email app that puts your privacy and safety first.';
+  'HMD Mail - your private, AI-powered email client.';
 
 export const siteConfig = {
   title: TITLE,
@@ -8,7 +8,7 @@ export const siteConfig = {
   icons: {
     icon: '/favicon.ico',
   },
-  applicationName: 'Zero',
+  applicationName: 'HMD Mail',
   creator: '@nizzyabi @bruvimtired @ripgrim @needleXO @dakdevs @mrgsub',
   openGraph: {
     title: TITLE,

@@ -21,7 +21,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
-import { Discord, Twitter } from '@/components/icons/icons';
+import { Twitter } from '@/components/icons/icons';
 import { Separator } from '@/components/ui/separator';
 import { Navigation } from '@/components/navigation';
 import { useEffect, useState, useMemo } from 'react';
@@ -388,12 +388,12 @@ export default function OpenPage() {
                   <div className="relative h-8 w-8">
                     <img
                       src="/black-icon.svg"
-                      alt="0.email Logo"
+                      alt="HMD Mail"
                       className="object-contain dark:hidden"
                     />
                     <img
                       src="/white-icon.svg"
-                      alt="0.email Logo"
+                      alt="HMD Mail"
                       className="hidden object-contain dark:block"
                     />
                   </div>
@@ -665,7 +665,7 @@ export default function OpenPage() {
             <h1 className="text-3xl font-semibold tracking-tight text-neutral-900/80 dark:text-white">
               Core Team
             </h1>
-            <p className="text-muted-foreground mt-2">Meet the people behind 0.email</p>
+            <p className="text-muted-foreground mt-2">Meet the people behind HMD Mail</p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -751,7 +751,7 @@ export default function OpenPage() {
               Contributors
             </h1>
             <div className="text-muted-foreground mt-2 flex items-center justify-center gap-2">
-              <span>Thank you to all the contributors who have helped make 0.email possible</span>
+              <span>Thank you to all the contributors who have helped make HMD Mail possible</span>
             </div>
           </div>
 
@@ -1007,24 +1007,6 @@ export default function OpenPage() {
         </div>
 
         <div className="mb-6 mt-2 flex items-center justify-center gap-4">
-          <a
-            href="https://discord.gg/mail0"
-            target="_blank"
-            rel="noreferrer"
-            className="text-neutral-500 transition-colors hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
-            aria-label="Join our Discord"
-          >
-            <Discord className="dark:fill-muted-foreground h-4 w-4" />
-          </a>
-          <a
-            href="https://x.com/mail0dotcom"
-            target="_blank"
-            rel="noreferrer"
-            className="text-neutral-500 transition-colors hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
-            aria-label="Follow us on X (Twitter)"
-          >
-            <Twitter className="dark:fill-muted-foreground h-4 w-4" />
-          </a>
         </div>
       </div>
     </div>

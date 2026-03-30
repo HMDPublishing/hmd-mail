@@ -259,7 +259,7 @@ export default function Comparision() {
                   </div>
                 </div>
                 <div className="justify-center text-2xl font-semibold leading-loose text-white">
-                  Zero Pro
+                  HMD Mail Pro
                 </div>
               </div>
               <button

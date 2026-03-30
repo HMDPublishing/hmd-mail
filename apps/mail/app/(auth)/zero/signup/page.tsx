@@ -22,8 +22,8 @@ export default function SignupZero() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Append the @0.email suffix to the username
-    const fullEmail = `${values.email}@0.email`;
+    // Append the domain suffix to the username
+    const fullEmail = `${values.email}@hmdpublishing.com`;
 
     // Use the correct sonner toast API
     toast.success(`Trying to signup with ${fullEmail}`, {
@@ -37,7 +37,7 @@ export default function SignupZero() {
     <div className="flex h-full min-h-screen w-full items-center justify-center bg-black">
       <div className="animate-in slide-in-from-bottom-4 w-full max-w-md px-6 py-8 duration-500">
         <div className="mb-4 text-center">
-          <h1 className="mb-2 text-4xl font-bold text-white">Signup with Zero</h1>
+          <h1 className="mb-2 text-4xl font-bold text-white">Sign up for HMD Mail</h1>
           <p className="text-muted-foreground">Enter your email below to signup to your account</p>
         </div>
 
@@ -74,7 +74,7 @@ export default function SignupZero() {
                         className="w-full bg-black pr-16 text-sm text-white placeholder:text-sm"
                       />
                       <span className="bg-popover text-muted-foreground border-input absolute bottom-0 right-0 top-0 flex items-center rounded-r-md border border-l-0 px-3 py-2 text-sm">
-                        @0.email
+                        @hmdpublishing.com
                       </span>
                     </div>
                   </FormControl>

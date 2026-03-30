@@ -66,7 +66,7 @@
     },
     "commandPalette": {
       "title": "कमांड पैलेट",
-      "description": "मेल-0 के लिए क्विक नेविगेशन और एक्शन्स",
+      "description": "HMD Mail के लिए क्विक नेविगेशन और एक्शन्स",
       "placeholder": "कोई आदेश लिखें या खोजें...",
       "noResults": "कोई परिणाम नहीं मिला",
       "groups": {
@@ -466,8 +466,8 @@
         "customPromptPlaceholder": "AI के लिए अपना कस्टम प्रॉम्प्ट दर्ज करें...",
         "customPromptDescription": "AI आपके ईमेल जवाब कैसे लिखता है, इसे अनुकूलित करें। यह आधार प्रॉम्प्ट में जोड़ा जाएगा।",
         "noResultsFound": "कोई परिणाम नहीं मिला",
-        "zeroSignature": "ज़ीरो सिग्नेचर",
-        "zeroSignatureDescription": "अपने ईमेल में ज़ीरो सिग्नेचर जोड़ें।",
+        "zeroSignature": "HMD Mail सिग्नेचर",
+        "zeroSignatureDescription": "अपने ईमेल में HMD Mail सिग्नेचर जोड़ें।",
         "undoSendEnabled": "भेजना रद्द करें",
         "undoSendEnabledDescription": "भेजने के 30 सेकंड के भीतर ईमेल रद्द करने की अनुमति दें।",
         "defaultEmailAlias": "डिफ़ॉल्ट ईमेल उपनाम",
@@ -480,7 +480,7 @@
       },
       "connections": {
         "title": "ईमेल कनेक्शन्स",
-        "description": "अपने ईमेल अकाउंट्स को ज़ीरो से कनेक्ट करें।",
+        "description": "अपने ईमेल अकाउंट्स को HMD Mail से कनेक्ट करें।",
         "disconnectTitle": "ईमेल खाता डिस्कनेक्ट करें",
         "disconnectDescription": "क्या आप वाकई इस ईमेल को डिस्कनेक्ट करना चाहते हैं?",
         "cancel": "कैन्सल करें",
@@ -613,7 +613,7 @@
     "createEmail": {
       "invalidEmail": "अमान्य ईमेल पता",
       "body": "बॉडी",
-      "example": "zero@0.email",
+      "example": "user@example.com",
       "attachments": "अटैचमेंटस",
       "addMore": "और जोड़ें",
       "dropFilesToAttach": "अटैच करने के लिए फाइलें यहां छोड़ें",
@@ -668,6 +668,6 @@
   "errorMessages": {
     "required_scopes_missing": "आपके पूर्ण अनुभव को बनाने के लिए आवश्यक अनुमतियां हमारे पास नहीं हैं। कृपया फिर से साइन इन करें और अनुरोधित पहुंच की अनुमति दें।",
     "early_access_required": "लॉग इन करने के लिए अर्ली एक्सेस आवश्यक है",
-    "unauthorized": "Zero तृतीय पक्ष प्रदाता से आपका डेटा लोड नहीं कर सका। कृपया पुनः प्रयास करें।"
+    "unauthorized": "तृतीय पक्ष प्रदाता से आपका डेटा लोड नहीं हो सका। कृपया पुनः प्रयास करें।"
   }
 }

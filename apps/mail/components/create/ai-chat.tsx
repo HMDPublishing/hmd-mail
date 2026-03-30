@@ -219,7 +219,7 @@ export function AIChat({
   }, [status, scrollToBottom]);
 
   const editor = useComposeEditor({
-    placeholder: 'Ask Zero to do anything...',
+    placeholder: 'Ask anything about your emails...',
     onLengthChange: () => setInput(editor.getText()),
     onKeydown(event) {
       if (event.key === '0' && event.metaKey) {
@@ -260,8 +260,8 @@ export function AIChat({
           {!messages.length ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <div className="relative mb-4 h-[44px] w-[44px]">
-                <img src="/black-icon.svg" alt="Zero Logo" className="dark:hidden" />
-                <img src="/white-icon.svg" alt="Zero Logo" className="hidden dark:block" />
+                <img src="/black-icon.svg" alt="HMD Mail" className="dark:hidden" />
+                <img src="/white-icon.svg" alt="HMD Mail" className="hidden dark:block" />
               </div>
               <p className="mb-1 mt-2 hidden text-center text-sm font-medium text-black md:block dark:text-white">
                 Ask anything about your emails

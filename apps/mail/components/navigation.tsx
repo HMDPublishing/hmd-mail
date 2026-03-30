@@ -38,19 +38,13 @@ const resources = [
     description: 'Connect with us professionally and stay updated.',
     platform: 'linkedin' as const,
   },
-  {
-    title: 'Discord',
-    href: 'https://discord.gg/mail0',
-    description: 'Join our community and chat with the team.',
-    platform: 'discord' as const,
-  },
 ];
 
 const aboutLinks = [
   {
     title: 'About',
     href: '/about',
-    description: 'Learn more about Zero and our mission.',
+    description: 'Learn more about HMD Mail and our mission.',
   },
   {
     title: 'Privacy',
@@ -65,7 +59,7 @@ const aboutLinks = [
   {
     title: 'Contributors',
     href: '/contributors',
-    description: 'See the contributors to Zero.',
+    description: 'See the contributors to HMD Mail.',
   },
 ];
 
@@ -114,7 +108,7 @@ export function Navigation() {
         <nav className="border-input/50 flex w-full max-w-4xl items-center justify-between gap-2 rounded-xl border-t bg-[#1E1E1E] p-3 px-6">
           <div className="flex items-center gap-6">
             <Link to="/" className="relative bottom-1 cursor-pointer">
-              <img src="white-icon.svg" alt="Zero Email" width={22} height={22} />
+              <img src="white-icon.svg" alt="HMD Mail" width={22} height={22} />
               <span className="text-muted-foreground absolute -right-[-0.5px] text-[10px]">
                 beta
               </span>
@@ -226,14 +220,14 @@ export function Navigation() {
                 <Link to="/" onClick={() => setOpen(false)}>
                   <img
                     src="white-icon.svg"
-                    alt="Zero Email"
+                    alt="HMD Mail"
                     className="hidden object-contain dark:block"
                     width={22}
                     height={22}
                   />
                   <img
                     src="/black-icon.svg"
-                    alt="0.email Logo"
+                    alt="HMD Mail"
                     className="object-contain dark:hidden"
                     width={22}
                     height={22}
