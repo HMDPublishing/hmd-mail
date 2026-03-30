@@ -1,0 +1,94 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "zero-server-hmd",
+  "compatibility_date": "2025-05-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/main.ts",
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.sql"],
+      "fallthrough": true
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "api.mail.hmdpublishing.com",
+      "custom_domain": true
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "hmd-threads-vector"
+    },
+    {
+      "binding": "VECTORIZE_MESSAGE",
+      "index_name": "hmd-messages-vector"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "ZERO_AGENT", "class_name": "ZeroAgent" },
+      { "name": "ZERO_MCP", "class_name": "ZeroMCP" },
+      { "name": "ZERO_DB", "class_name": "ZeroDB" },
+      { "name": "ZERO_DRIVER", "class_name": "ZeroDriver" },
+      { "name": "THINKING_MCP", "class_name": "ThinkingMCP" },
+      { "name": "WORKFLOW_RUNNER", "class_name": "WorkflowRunner" },
+      { "name": "THREAD_SYNC_WORKER", "class_name": "ThreadSyncWorker" },
+      { "name": "SHARD_REGISTRY", "class_name": "ShardRegistry" }
+    ]
+  },
+  "queues": {
+    "producers": [
+      { "queue": "thread-queue-hmd", "binding": "thread_queue" },
+      { "queue": "subscribe-queue-hmd", "binding": "subscribe_queue" },
+      { "queue": "send-email-queue-hmd", "binding": "send_email_queue" }
+    ],
+    "consumers": [
+      { "queue": "subscribe-queue-hmd" },
+      { "queue": "thread-queue-hmd" },
+      { "queue": "send-email-queue-hmd" }
+    ]
+  },
+  "vars": {
+    "NODE_ENV": "production",
+    "COOKIE_DOMAIN": "mail.hmdpublishing.com",
+    "VITE_PUBLIC_BACKEND_URL": "https://api.mail.hmdpublishing.com",
+    "VITE_PUBLIC_APP_URL": "https://mail.hmdpublishing.com",
+    "BETTER_AUTH_URL": "https://mail.hmdpublishing.com",
+    "CLOUDFLARE_ACCOUNT_ID": "89323be49afb364c9e161036cc37ed9c",
+    "CLOUDFLARE_API_TOKEN": "",
+    "AUTORAG_ID": "",
+    "DISABLE_CALLS": "true",
+    "DISABLE_WORKFLOWS": "true",
+    "DROP_AGENT_TABLES": "false",
+    "MEET_AUTH_HEADER": "",
+    "THREAD_SYNC_MAX_COUNT": "60",
+    "THREAD_SYNC_LOOP": "false",
+    "USE_OPENAI": "false",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "",
+    "OTEL_SERVICE_NAME": "zero-email-server-hmd",
+    "DD_API_KEY": "",
+    "DD_APP_KEY": "",
+    "DD_SITE": "datadoghq.com"
+  },
+  "kv_namespaces": [
+    { "binding": "gmail_history_id", "id": "b78e20d068b94578af688c66eb7fb304" },
+    { "binding": "gmail_processing_threads", "id": "d2f646f925934f8fafd857b136a4a167" },
+    { "binding": "subscribed_accounts", "id": "fe77727d9ae9411eb8b4f74310b2a6ad" },
+    { "binding": "connection_labels", "id": "53296c26a54f49828dc1ec54616fb7b4" },
+    { "binding": "prompts_storage", "id": "836a699e9b6948529aa6604ff5393668" },
+    { "binding": "gmail_sub_age", "id": "33645ed1bcdf4a848e0592159b69fb49" },
+    { "binding": "pending_emails_status", "id": "4e843dfd81874cdeaa7db0b5c19a4a3f" },
+    { "binding": "pending_emails_payload", "id": "04269865dc6b45ba9212d12a42dcce57" },
+    { "binding": "scheduled_emails", "id": "7c097f6519464a918ce7489d8d21cfb9" },
+    { "binding": "snoozed_emails", "id": "17ef4d443a1e4e798ced3712131b836d" }
+  ],
+  "hyperdrive": [
+    { "binding": "HYPERDRIVE", "id": "38fff605dce144e0be69772e53d4af7e" }
+  ]
+}

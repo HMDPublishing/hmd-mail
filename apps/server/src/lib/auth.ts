@@ -351,7 +351,11 @@ const createAuthConfig = () => {
       'https://sapi.0.email',
       'https://staging.0.email',
       'https://0.email',
+      'https://mail.hmdpublishing.com',
       'http://localhost:3000',
+      ...(env.BETTER_AUTH_TRUSTED_ORIGINS
+        ? env.BETTER_AUTH_TRUSTED_ORIGINS.split(',').map((o: string) => o.trim())
+        : []),
     ],
     session: {
       cookieCache: {

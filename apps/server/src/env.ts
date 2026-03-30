@@ -53,7 +53,7 @@ export type ZeroEnv = {
   VITE_PUBLIC_POSTHOG_KEY: string;
   VITE_PUBLIC_POSTHOG_HOST: string;
   COOKIE_DOMAIN: string;
-  BETTER_AUTH_TRUSTED_ORIGINS: string;
+  BETTER_AUTH_TRUSTED_ORIGINS?: string;
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
   GOOGLE_REDIRECT_URI: string;

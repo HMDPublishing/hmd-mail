@@ -744,6 +744,8 @@ const app = new Hono<HonoContext>()
         } catch {
           return null;
         }
+        // Allow localhost for local development
+        if (hostname === 'localhost') return origin;
         const cookieDomain = env.COOKIE_DOMAIN;
         if (!cookieDomain) return null;
         if (hostname === cookieDomain || hostname.endsWith('.' + cookieDomain)) {
