@@ -158,13 +158,11 @@ const connectionHandlerHook = async (account: Account) => {
 
 export const createAuth = () => {
   const twilioClient = twilio();
-  const dub = new Dub();
-
   return betterAuth({
     plugins: [
-      dubAnalytics({
-        dubClient: dub,
-      }),
+      ...(env.DUB_API_KEY
+        ? [dubAnalytics({ dubClient: new Dub({ token: env.DUB_API_KEY }) })]
+        : []),
       mcp({
         loginPage: env.VITE_PUBLIC_APP_URL + '/login',
       }),
