@@ -1,5 +1,4 @@
 import { useAutumn, useCustomer } from 'autumn-js/react';
-import { signOut } from '@/lib/auth-client';
 import { isProCustomer } from '@/lib/utils';
 import { useEffect, useMemo } from 'react';
 
@@ -22,34 +21,34 @@ type Features = {
 
 const DEFAULT_FEATURES: Features = {
   chatMessages: {
-    total: 0,
-    remaining: 0,
-    unlimited: false,
-    enabled: false,
+    total: 999999,
+    remaining: 999999,
+    unlimited: true,
+    enabled: true,
     usage: 0,
     nextResetAt: null,
     interval: '',
-    included_usage: 0,
+    included_usage: 999999,
   },
   connections: {
-    total: 0,
-    remaining: 0,
-    unlimited: false,
-    enabled: false,
+    total: 999999,
+    remaining: 999999,
+    unlimited: true,
+    enabled: true,
     usage: 0,
     nextResetAt: null,
     interval: '',
-    included_usage: 0,
+    included_usage: 999999,
   },
   brainActivity: {
-    total: 0,
-    remaining: 0,
-    unlimited: false,
-    enabled: false,
+    total: 999999,
+    remaining: 999999,
+    unlimited: true,
+    enabled: true,
     usage: 0,
     nextResetAt: null,
     interval: '',
-    included_usage: 0,
+    included_usage: 999999,
   },
 };
 
@@ -64,7 +63,8 @@ export const useBilling = () => {
   const { attach, track, openBillingPortal } = useAutumn();
 
   useEffect(() => {
-    if (error) signOut();
+    // Self-hosted: don't sign out on Autumn billing errors
+    if (error) console.warn('[billing] Autumn error (ignored, self-hosted):', error);
   }, [error]);
 
   const { isPro, ...customerFeatures } = useMemo(() => {
