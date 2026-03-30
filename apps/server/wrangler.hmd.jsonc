@@ -70,6 +70,7 @@
     "THREAD_SYNC_MAX_COUNT": "60",
     "THREAD_SYNC_LOOP": "false",
     "USE_OPENAI": "false",
+    "FORCE_GOOGLE_AUTH": "true",
     "OTEL_EXPORTER_OTLP_ENDPOINT": "",
     "OTEL_SERVICE_NAME": "zero-email-server-hmd",
     "DD_API_KEY": "",
