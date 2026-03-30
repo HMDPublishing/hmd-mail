@@ -162,86 +162,14 @@ const connectionHandlerHook = async (account: Account) => {
 };
 
 export const createAuth = () => {
-  const twilioClient = twilio();
   return betterAuth({
     plugins: [
-      ...(env.DUB_API_KEY
-        ? [dubAnalytics({ dubClient: new Dub({ token: env.DUB_API_KEY }) })]
-        : []),
       mcp({
         loginPage: env.VITE_PUBLIC_APP_URL + '/login',
       }),
       jwt(),
       bearer(),
-      phoneNumber({
-        sendOTP: async ({ code, phoneNumber }) => {
-          await twilioClient.messages
-            .send(phoneNumber, `Your verification code is: ${code}, do not share it with anyone.`)
-            .catch((error) => {
-              console.error('Failed to send OTP', error);
-              throw new APIError('INTERNAL_SERVER_ERROR', {
-                message: `Failed to send OTP, ${error.message}`,
-              });
-            });
-        },
-      }),
     ],
-    user: {
-      deleteUser: {
-        enabled: true,
-        async sendDeleteAccountVerification(data) {
-          const verificationUrl = data.url;
-
-          await resend().emails.send({
-            from: '0.email <no-reply@0.email>',
-            to: data.user.email,
-            subject: 'Delete your 0.email account',
-            html: `
-            <h2>Delete Your 0.email Account</h2>
-            <p>Click the link below to delete your account:</p>
-            <a href="${verificationUrl}">${verificationUrl}</a>
-          `,
-          });
-        },
-        beforeDelete: async (user, request) => {
-          if (!request) throw new APIError('BAD_REQUEST', { message: 'Request object is missing' });
-          const db = await getZeroDB(user.id);
-          const connections = await db.findManyConnections();
-          const revokedAccounts = (
-            await Promise.allSettled(
-              connections.map(async (connection) => {
-                if (!connection.accessToken || !connection.refreshToken) return false;
-                await disableBrainFunction({
-                  id: connection.id,
-                  providerId: connection.providerId as EProviders,
-                });
-                const driver = createDriver(connection.providerId, {
-                  auth: {
-                    accessToken: connection.accessToken,
-                    refreshToken: connection.refreshToken,
-                    userId: user.id,
-                    email: connection.email,
-                  },
-                });
-                const token = connection.refreshToken;
-                return await driver.revokeToken(token || '');
-              }),
-            )
-          ).map((result) => {
-            if (result.status === 'fulfilled') {
-              return result.value;
-            }
-            return false;
-          });
-
-          if (revokedAccounts.every((value) => !!value)) {
-            console.log('Failed to revoke some accounts');
-          }
-
-          await db.deleteUser();
-        },
-      },
-    },
     databaseHooks: {
       account: {
         create: {
@@ -251,70 +179,6 @@ export const createAuth = () => {
           after: connectionHandlerHook,
         },
       },
-    },
-    emailAndPassword: {
-      enabled: false,
-      requireEmailVerification: true,
-      sendResetPassword: async ({ user, url }) => {
-        await resend().emails.send({
-          from: '0.email <onboarding@0.email>',
-          to: user.email,
-          subject: 'Reset your password',
-          html: `
-            <h2>Reset Your Password</h2>
-            <p>Click the link below to reset your password:</p>
-            <a href="${url}">${url}</a>
-            <p>If you didn't request this, you can safely ignore this email.</p>
-          `,
-        });
-      },
-    },
-    emailVerification: {
-      sendOnSignUp: false,
-      autoSignInAfterVerification: true,
-      sendVerificationEmail: async ({ user, token }) => {
-        const verificationUrl = `${env.VITE_PUBLIC_APP_URL}/api/auth/verify-email?token=${token}&callbackURL=/settings/connections`;
-
-        await resend().emails.send({
-          from: '0.email <onboarding@0.email>',
-          to: user.email,
-          subject: 'Verify your 0.email account',
-          html: `
-            <h2>Verify Your 0.email Account</h2>
-            <p>Click the link below to verify your email:</p>
-            <a href="${verificationUrl}">${verificationUrl}</a>
-          `,
-        });
-      },
-    },
-    hooks: {
-      after: createAuthMiddleware(async (ctx) => {
-        // all hooks that run on sign-up routes
-        if (ctx.path.startsWith('/sign-up')) {
-          // only true if this request is from a new user
-          const newSession = ctx.context.newSession;
-          if (newSession) {
-            // Check if user already has settings
-            const db = await getZeroDB(newSession.user.id);
-            const existingSettings = await db.findUserSettings();
-
-            if (!existingSettings) {
-              // get timezone from vercel's header
-              const headerTimezone = ctx.headers?.get('x-vercel-ip-timezone');
-              // validate timezone from header or fallback to browser timezone
-              const timezone =
-                headerTimezone && isValidTimezone(headerTimezone)
-                  ? headerTimezone
-                  : getBrowserTimezone();
-              // write default settings against the user
-              await db.insertUserSettings({
-                ...defaultUserSettings,
-                timezone,
-              });
-            }
-          }
-        }
-      }),
     },
     ...createAuthConfig(),
   });

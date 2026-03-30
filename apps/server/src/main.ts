@@ -29,7 +29,7 @@ import { ShardRegistry, ZeroAgent, ZeroDriver } from './routes/agent';
 import { ThreadSyncWorker } from './routes/agent/sync-worker';
 import { oAuthDiscoveryMetadata } from 'better-auth/plugins';
 import { EProviders, type IEmailSendBatch } from './types';
-import { eq, and, desc, asc, inArray } from 'drizzle-orm';
+import { eq, and, desc, asc, inArray, sql } from 'drizzle-orm';
 import { ThinkingMCP } from './lib/sequential-thinking';
 
 import { contextStorage } from 'hono/context-storage';
@@ -45,6 +45,7 @@ import { initTracing } from './lib/tracing';
 import { env, type ZeroEnv } from './env';
 import type { HonoContext } from './ctx';
 import { createDb, type DB } from './db';
+import { redis } from './lib/services';
 import { createAuth } from './lib/auth';
 import { aiRouter } from './routes/ai';
 import { appRouter } from './trpc';
@@ -821,6 +822,21 @@ const app = new Hono<HonoContext>()
     { replaceRequest: false },
   )
   .route('/api', api)
+  .get('/debug/health', async (c) => {
+    const results: Record<string, string> = {};
+    try {
+      const { db: _db, conn } = createDb(env.HYPERDRIVE.connectionString);
+      const r = await _db.execute(sql`SELECT 1 as ok`);
+      results.db = 'ok';
+      c.executionCtx.waitUntil(conn.end());
+    } catch (e: any) { results.db = 'FAIL: ' + e.message; }
+    try {
+      const cache = redis();
+      await cache.set('_health', '1', { ex: 10 });
+      results.redis = 'ok';
+    } catch (e: any) { results.redis = 'FAIL: ' + e.message; }
+    return c.json(results);
+  })
   .use(
     '*',
     agentsMiddleware({
