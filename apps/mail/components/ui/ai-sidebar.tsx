@@ -498,7 +498,6 @@ function AISidebar({ className }: AISidebarProps) {
                   onToggleViewMode={toggleViewMode}
                   isFullScreen={isFullScreen}
                   isPopup={isPopup}
-                  isPro={isPro ?? false}
                   onNewChat={handleNewChat}
                 />
                 <div className="relative flex-1 overflow-hidden">
