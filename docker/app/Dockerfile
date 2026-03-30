@@ -1,5 +1,5 @@
 # ========================================
-# Base Stage: Alpine Linux with Bun
+# Base Stage: Alpine Linux with Node
 # ========================================
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
@@ -39,23 +39,23 @@ RUN cd apps/mail && NODE_OPTIONS="--max-old-space-size=1536" pnpm run build
 FROM base AS runner
 WORKDIR /app
 
-RUN npm install -g wrangler
-
 RUN addgroup -S -g 1001 pnpm && \
     adduser -S -u 1001 nextjs -G pnpm
 
-# Set environment variables for build
+# Set environment variables
 ENV NODE_ENV=production \
     PORT=3000 \
-    HOSTNAME="0.0.0.0" \
-    NEXT_TELEMETRY_DISABLED=1
+    HOSTNAME="0.0.0.0"
 
-# Copy entrypoint and run it
+# Copy entrypoint scripts
 COPY scripts/docker/ /app/scripts
 RUN chmod -R +x /app/scripts/*
 
-# Copy the entire built application
-COPY --from=builder --chown=nextjs:pnpm /app ./
+# Copy static server
+COPY docker/app/server.js /app/server.js
+
+# Copy only the built client assets (SPA)
+COPY --from=builder --chown=nextjs:pnpm /app/apps/mail/build/client /app/apps/mail/build/client
 
 # Switch to non-root user
 USER nextjs
