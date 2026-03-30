@@ -1770,10 +1770,7 @@ export class ZeroAgent extends AIChatAgent<ZeroEnv> {
           {},
         );
 
-        const model =
-          this.env.USE_OPENAI === 'true'
-            ? groq('openai/gpt-oss-120b')
-            : anthropic(this.env.OPENAI_MODEL || 'claude-3-7-sonnet-20250219');
+        const model = openai(this.env.OPENAI_MODEL || 'gpt-4o');
 
         const result = streamText({
           model,
