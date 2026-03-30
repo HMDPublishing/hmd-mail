@@ -170,6 +170,48 @@ export const createAuth = () => {
       jwt(),
       bearer(),
     ],
+    user: {
+      deleteUser: {
+        enabled: true,
+        async sendDeleteAccountVerification(data) {
+          const verificationUrl = data.url;
+          await resend().emails.send({
+            from: '0.email <no-reply@0.email>',
+            to: data.user.email,
+            subject: 'Delete your account',
+            html: `<h2>Delete Your Account</h2><p>Click the link below to delete your account:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
+          });
+        },
+        beforeDelete: async (user, request) => {
+          if (!request) throw new APIError('BAD_REQUEST', { message: 'Request object is missing' });
+          const db = await getZeroDB(user.id);
+          const connections = await db.findManyConnections();
+          await Promise.allSettled(
+            connections.map(async (connection) => {
+              if (!connection.accessToken || !connection.refreshToken) return;
+              try {
+                await disableBrainFunction({
+                  id: connection.id,
+                  providerId: connection.providerId as EProviders,
+                });
+                const driver = createDriver(connection.providerId, {
+                  auth: {
+                    accessToken: connection.accessToken,
+                    refreshToken: connection.refreshToken,
+                    userId: user.id,
+                    email: connection.email,
+                  },
+                });
+                await driver.revokeToken(connection.refreshToken);
+              } catch (error) {
+                console.error('Failed to revoke connection:', connection.id, error);
+              }
+            }),
+          );
+          await db.deleteUser();
+        },
+      },
+    },
     databaseHooks: {
       account: {
         create: {
@@ -179,6 +221,28 @@ export const createAuth = () => {
           after: connectionHandlerHook,
         },
       },
+    },
+    hooks: {
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path.startsWith('/sign-up')) {
+          const newSession = ctx.context.newSession;
+          if (newSession) {
+            const db = await getZeroDB(newSession.user.id);
+            const existingSettings = await db.findUserSettings();
+            if (!existingSettings) {
+              const headerTimezone = ctx.headers?.get('x-vercel-ip-timezone');
+              const timezone =
+                headerTimezone && isValidTimezone(headerTimezone)
+                  ? headerTimezone
+                  : getBrowserTimezone();
+              await db.insertUserSettings({
+                ...defaultUserSettings,
+                timezone,
+              });
+            }
+          }
+        }
+      }),
     },
     ...createAuthConfig(),
   });
