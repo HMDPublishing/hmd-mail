@@ -64,7 +64,7 @@
     "CLOUDFLARE_API_TOKEN": "",
     "AUTORAG_ID": "",
     "DISABLE_CALLS": "true",
-    "DISABLE_WORKFLOWS": "true",
+    "DISABLE_WORKFLOWS": "false",
     "DROP_AGENT_TABLES": "false",
     "MEET_AUTH_HEADER": "",
     "THREAD_SYNC_MAX_COUNT": "60",
@@ -87,6 +87,21 @@
     { "binding": "pending_emails_payload", "id": "04269865dc6b45ba9212d12a42dcce57" },
     { "binding": "scheduled_emails", "id": "7c097f6519464a918ce7489d8d21cfb9" },
     { "binding": "snoozed_emails", "id": "17ef4d443a1e4e798ced3712131b836d" }
+  ],
+  "r2_buckets": [
+    { "binding": "THREADS_BUCKET", "bucket_name": "threads-hmd" }
+  ],
+  "workflows": [
+    {
+      "binding": "SYNC_THREADS_WORKFLOW",
+      "class_name": "SyncThreadsWorkflow",
+      "name": "sync-threads-workflow-hmd"
+    },
+    {
+      "binding": "SYNC_THREADS_COORDINATOR_WORKFLOW",
+      "class_name": "SyncThreadsCoordinatorWorkflow",
+      "name": "sync-threads-coordinator-workflow-hmd"
+    }
   ],
   "hyperdrive": [
     { "binding": "HYPERDRIVE", "id": "38fff605dce144e0be69772e53d4af7e" }
