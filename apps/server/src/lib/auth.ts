@@ -88,8 +88,9 @@ const scheduleCampaign = (userInfo: { address: string; name: string }) =>
   });
 
 const connectionHandlerHook = async (account: Account) => {
+  console.log('[connectionHandlerHook] Starting for account:', account.providerId, account.userId);
   if (!account.accessToken || !account.refreshToken) {
-    console.error('Missing Access/Refresh Tokens', { account });
+    console.error('Missing Access/Refresh Tokens', { providerId: account.providerId, userId: account.userId, hasAccess: !!account.accessToken, hasRefresh: !!account.refreshToken });
     throw new APIError('EXPECTATION_FAILED', {
       message: 'Missing Access/Refresh Tokens, contact us on Discord for support',
     });
@@ -142,10 +143,14 @@ const connectionHandlerHook = async (account: Account) => {
     updatingInfo,
   );
 
-  if (env.NODE_ENV === 'production') {
-    await Effect.runPromise(
-      scheduleCampaign({ address: userInfo.address, name: userInfo.name || 'there' }),
-    );
+  try {
+    if (env.NODE_ENV === 'production') {
+      await Effect.runPromise(
+        scheduleCampaign({ address: userInfo.address, name: userInfo.name || 'there' }),
+      );
+    }
+  } catch (error) {
+    console.error('[connectionHandlerHook] scheduleCampaign failed (non-fatal):', error);
   }
 
   if (env.GOOGLE_S_ACCOUNT && env.GOOGLE_S_ACCOUNT !== '{}') {

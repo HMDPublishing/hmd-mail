@@ -704,8 +704,14 @@ const api = new Hono<HonoContext>()
   })
   .route('/ai', aiRouter)
   .route('/public', publicRouter)
-  .on(['GET', 'POST', 'OPTIONS'], '/auth/*', (c) => {
-    return c.var.auth.handler(c.req.raw);
+  .on(['GET', 'POST', 'OPTIONS'], '/auth/*', async (c) => {
+    try {
+      return await c.var.auth.handler(c.req.raw);
+    } catch (error) {
+      console.error('[AUTH HANDLER ERROR]', error);
+      console.error('[AUTH HANDLER STACK]', error instanceof Error ? error.stack : String(error));
+      return c.json({ error: 'Auth handler failed', message: error instanceof Error ? error.message : String(error) }, 500);
+    }
   })
   .use(
     trpcServer({
