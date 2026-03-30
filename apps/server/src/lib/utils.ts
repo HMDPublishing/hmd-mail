@@ -1,5 +1,4 @@
 import type { AppContext, EProviders, Sender } from '../types';
-import type { Customer } from 'autumn-js';
 import { env } from '../env';
 
 export const parseHeaders = (token: string) => {
@@ -367,7 +366,7 @@ export const cleanSearchValue = (q: string): string => {
     .trim();
 };
 
-export const isProCustomer = (_customer: Customer) => {
+export const isProCustomer = () => {
   // Self-hosted: all features unlocked
   return true;
 };

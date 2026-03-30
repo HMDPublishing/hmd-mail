@@ -3,7 +3,6 @@ import { getBrowserTimezone } from './timezones';
 import { formatInTimeZone } from 'date-fns-tz';
 import { MAX_URL_LENGTH } from './constants';
 import { clsx, type ClassValue } from 'clsx';
-import type { Customer } from 'autumn-js';
 import { twMerge } from 'tailwind-merge';
 import type { Sender } from '@/types';
 import LZString from 'lz-string';
@@ -619,7 +618,7 @@ export const withExponentialBackoff = async <T>(
   }
 };
 
-export const isProCustomer = (_customer: Customer) => {
+export const isProCustomer = () => {
   // Self-hosted: all features unlocked
   return true;
 };

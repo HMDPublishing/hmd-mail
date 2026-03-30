@@ -1,7 +1,6 @@
 import { PurpleThickCheck, ThickCheck } from '../icons/icons';
 import { useSession, signIn } from '@/lib/auth-client';
 import { PricingSwitch } from '../ui/pricing-switch';
-import { useBilling } from '@/hooks/use-billing';
 import { useNavigate } from 'react-router';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
@@ -83,7 +82,6 @@ export default function PricingCard() {
   const [isAnnual, setIsAnnual] = useState(false);
   const monthlyPrice = PRICING_CONSTANTS.MONTHLY_PRICE;
   const annualPrice = monthlyPrice * PRICING_CONSTANTS.ANNUAL_DISCOUNT;
-  const { attach } = useBilling();
   const { data: session } = useSession();
   const navigate = useNavigate();
 
@@ -92,19 +90,8 @@ export default function PricingCard() {
       handleGoogleSignIn(`${window.location.origin}/pricing`);
       return;
     }
-
-    if (attach) {
-      toast.promise(
-        attach({
-          productId: isAnnual ? 'pro_annual' : 'pro-example',
-          successUrl: `${window.location.origin}/mail/inbox?success=true`,
-        }),
-        {
-          success: 'Redirecting to payment...',
-          error: 'Failed to process upgrade. Please try again later.',
-        },
-      );
-    }
+    // Self-hosted: all features unlocked, redirect to inbox
+    navigate('/mail/inbox');
   };
   return (
     <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">

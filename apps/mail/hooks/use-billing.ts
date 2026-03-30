@@ -1,6 +1,7 @@
-import { useAutumn, useCustomer } from 'autumn-js/react';
-import { isProCustomer } from '@/lib/utils';
-import { useEffect, useMemo } from 'react';
+/**
+ * Self-hosted stub: all features are always unlocked.
+ * No Autumn billing SDK dependency.
+ */
 
 type FeatureState = {
   total: number;
@@ -13,120 +14,28 @@ type FeatureState = {
   included_usage: number;
 };
 
-type Features = {
-  chatMessages: FeatureState;
-  connections: FeatureState;
-  brainActivity: FeatureState;
+const UNLIMITED: FeatureState = {
+  total: 999999,
+  remaining: 999999,
+  unlimited: true,
+  enabled: true,
+  usage: 0,
+  nextResetAt: null,
+  interval: '',
+  included_usage: 999999,
 };
-
-const DEFAULT_FEATURES: Features = {
-  chatMessages: {
-    total: 999999,
-    remaining: 999999,
-    unlimited: true,
-    enabled: true,
-    usage: 0,
-    nextResetAt: null,
-    interval: '',
-    included_usage: 999999,
-  },
-  connections: {
-    total: 999999,
-    remaining: 999999,
-    unlimited: true,
-    enabled: true,
-    usage: 0,
-    nextResetAt: null,
-    interval: '',
-    included_usage: 999999,
-  },
-  brainActivity: {
-    total: 999999,
-    remaining: 999999,
-    unlimited: true,
-    enabled: true,
-    usage: 0,
-    nextResetAt: null,
-    interval: '',
-    included_usage: 999999,
-  },
-};
-
-const FEATURE_IDS = {
-  CHAT: 'chat-messages',
-  CONNECTIONS: 'connections',
-  BRAIN: 'brain-activity',
-} as const;
 
 export const useBilling = () => {
-  const { customer, refetch, isLoading, error } = useCustomer();
-  const { attach, track, openBillingPortal } = useAutumn();
-
-  useEffect(() => {
-    // Self-hosted: don't sign out on Autumn billing errors
-    if (error) console.warn('[billing] Autumn error (ignored, self-hosted):', error);
-  }, [error]);
-
-  const { isPro, ...customerFeatures } = useMemo(() => {
-    const isPro = customer ? isProCustomer(customer) : false;
-
-    if (!customer?.features) return { isPro, ...DEFAULT_FEATURES };
-
-    const features = { ...DEFAULT_FEATURES };
-
-    if (customer.features[FEATURE_IDS.CHAT]) {
-      const feature = customer.features[FEATURE_IDS.CHAT];
-      features.chatMessages = {
-        total: feature.included_usage || 0,
-        remaining: feature.balance || 0,
-        unlimited: feature.unlimited ?? false,
-        enabled: (feature.unlimited ?? false) || Number(feature.balance) > 0,
-        usage: feature.usage || 0,
-        nextResetAt: feature.next_reset_at ?? null,
-        interval: feature.interval || '',
-        included_usage: feature.included_usage || 0,
-      };
-    }
-
-    if (customer.features[FEATURE_IDS.CONNECTIONS]) {
-      const feature = customer.features[FEATURE_IDS.CONNECTIONS];
-      features.connections = {
-        total: feature.included_usage || 0,
-        remaining: feature.balance || 0,
-        unlimited: feature.unlimited ?? false,
-        enabled: (feature.unlimited ?? false) || Number(feature.balance) > 0,
-        usage: feature.usage || 0,
-        nextResetAt: feature.next_reset_at ?? null,
-        interval: feature.interval || '',
-        included_usage: feature.included_usage || 0,
-      };
-    }
-
-    if (customer.features[FEATURE_IDS.BRAIN]) {
-      const feature = customer.features[FEATURE_IDS.BRAIN];
-      features.brainActivity = {
-        total: feature.included_usage || 0,
-        remaining: feature.balance || 0,
-        unlimited: feature.unlimited ?? false,
-        enabled: (feature.unlimited ?? false) || Number(feature.balance) > 0,
-        usage: feature.usage || 0,
-        nextResetAt: feature.next_reset_at ?? null,
-        interval: feature.interval || '',
-        included_usage: feature.included_usage || 0,
-      };
-    }
-
-    return { isPro, ...features };
-  }, [customer]);
-
   return {
-    isLoading,
-    customer,
-    refetch,
-    attach,
-    track,
-    openBillingPortal,
-    isPro,
-    ...customerFeatures,
+    isLoading: false,
+    customer: null,
+    refetch: () => Promise.resolve(),
+    attach: null,
+    track: async () => {},
+    openBillingPortal: () => {},
+    isPro: true,
+    chatMessages: UNLIMITED,
+    connections: UNLIMITED,
+    brainActivity: UNLIMITED,
   };
 };

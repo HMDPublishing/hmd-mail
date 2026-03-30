@@ -20,7 +20,6 @@ import { disableBrainFunction } from './brain';
 import { APIError } from 'better-auth/api';
 import { type EProviders } from '../types';
 import { createDriver } from './driver';
-import { Autumn } from 'autumn-js';
 import { createDb } from '../db';
 import { Effect } from 'effect';
 import { env } from '../env';
@@ -205,14 +204,6 @@ export const createAuth = () => {
           if (!request) throw new APIError('BAD_REQUEST', { message: 'Request object is missing' });
           const db = await getZeroDB(user.id);
           const connections = await db.findManyConnections();
-          const autumn = new Autumn({ secretKey: env.AUTUMN_SECRET_KEY });
-          try {
-            await autumn.customers.delete(user.id);
-          } catch (error) {
-            console.error('Failed to delete Autumn customer:', error);
-            // Continue with deletion process despite Autumn failure
-          }
-
           const revokedAccounts = (
             await Promise.allSettled(
               connections.map(async (connection) => {

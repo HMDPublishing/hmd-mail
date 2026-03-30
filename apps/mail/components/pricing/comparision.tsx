@@ -1,11 +1,9 @@
 import { Plus, PurpleThickCheck, ThickCheck } from '../icons/icons';
 import { useSession, signIn } from '@/lib/auth-client';
-import { useBilling } from '@/hooks/use-billing';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
 export default function Comparision() {
-  const { attach } = useBilling();
   const { data: session } = useSession();
   const navigate = useNavigate();
 
@@ -24,18 +22,8 @@ export default function Comparision() {
       return;
     }
 
-    if (attach) {
-      toast.promise(
-        attach({
-          productId: 'pro-example',
-          successUrl: `${window.location.origin}/mail/inbox?success=true`,
-        }),
-        {
-          success: 'Redirecting to payment...',
-          error: 'Failed to process upgrade. Please try again later.',
-        },
-      );
-    }
+    // Self-hosted: all features unlocked, redirect to inbox
+    navigate('/mail/inbox');
   };
   return (
     <div className="relative mx-auto mt-20 hidden max-w-[1200px] flex-col items-center justify-center md:flex">
