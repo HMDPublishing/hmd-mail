@@ -14,7 +14,7 @@ import { useDraft } from '@/hooks/use-drafts';
 import { m } from '@/paraglide/messages';
 import type { Sender } from '@/types';
 import { useQueryState } from 'nuqs';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import posthog from 'posthog-js';
 import { toast } from 'sonner';
 
@@ -43,39 +43,31 @@ export default function ReplyCompose({ messageId }: ReplyComposeProps) {
   const replyToMessage =
     (messageId && emailData?.messages.find((msg) => msg.id === messageId)) || emailData?.latest;
 
-  // Initialize recipients and subject when mode changes
-  useEffect(() => {
-    if (!replyToMessage || !mode || !activeConnection?.email) return;
+  // Compute recipients based on reply mode
+  const { replyTo, replyCc } = useMemo(() => {
+    if (!replyToMessage || !mode || !activeConnection?.email) {
+      return { replyTo: [], replyCc: [] };
+    }
 
     const userEmail = activeConnection.email.toLowerCase();
     const senderEmail = replyToMessage.sender.email.toLowerCase();
 
-    // Set subject based on mode
-
     if (mode === 'reply') {
-      // Reply to sender
       const to: string[] = [];
-
-      // If the sender is not the current user, add them to the recipients
       if (senderEmail !== userEmail) {
         to.push(replyToMessage.sender.email);
       } else if (replyToMessage.to && replyToMessage.to.length > 0 && replyToMessage.to[0]?.email) {
-        // If we're replying to our own email, reply to the first recipient
         to.push(replyToMessage.to[0].email);
       }
-
-      // Initialize email composer with these recipients
-      // Note: The actual initialization happens in the EmailComposer component
+      return { replyTo: to, replyCc: [] };
     } else if (mode === 'replyAll') {
       const to: string[] = [];
       const cc: string[] = [];
 
-      // Add original sender if not current user
       if (senderEmail !== userEmail) {
         to.push(replyToMessage.sender.email);
       }
 
-      // Add original recipients from To field
       replyToMessage.to?.forEach((recipient) => {
         const recipientEmail = recipient.email.toLowerCase();
         if (recipientEmail !== userEmail && recipientEmail !== senderEmail) {
@@ -83,7 +75,6 @@ export default function ReplyCompose({ messageId }: ReplyComposeProps) {
         }
       });
 
-      // Add CC recipients
       replyToMessage.cc?.forEach((recipient) => {
         const recipientEmail = recipient.email.toLowerCase();
         if (recipientEmail !== userEmail && !to.includes(recipient.email)) {
@@ -91,11 +82,11 @@ export default function ReplyCompose({ messageId }: ReplyComposeProps) {
         }
       });
 
-      // Initialize email composer with these recipients
-    } else if (mode === 'forward') {
-      // For forward, we start with empty recipients
-      // Just set the subject and include the original message
+      return { replyTo: to, replyCc: cc };
     }
+
+    // Forward mode: empty recipients
+    return { replyTo: [], replyCc: [] };
   }, [mode, replyToMessage, activeConnection?.email]);
 
   const handleSendEmail = async (data: {
@@ -266,8 +257,8 @@ export default function ReplyCompose({ messageId }: ReplyComposeProps) {
           setActiveReplyId(null);
         }}
         initialMessage={draft?.content ?? latestDraft?.decodedBody}
-        initialTo={ensureEmailArray(draft?.to)}
-        initialCc={ensureEmailArray(draft?.cc)}
+        initialTo={ensureEmailArray(draft?.to).length > 0 ? ensureEmailArray(draft?.to) : replyTo}
+        initialCc={ensureEmailArray(draft?.cc).length > 0 ? ensureEmailArray(draft?.cc) : replyCc}
         initialBcc={ensureEmailArray(draft?.bcc)}
         initialSubject={draft?.subject}
         autofocus={true}

@@ -76,7 +76,6 @@ export function RecipientAutosuggest({
   } = useController({
     control,
     name,
-    defaultValue: [],
   });
 
   const [inputValue, setInputValue] = useState('');
@@ -215,8 +214,11 @@ export function RecipientAutosuggest({
   const handleInputBlur = useCallback(() => {
     setTimeout(() => {
       document.removeEventListener('mousedown', handleClickOutside);
+      if (inputValue.trim() && isValidEmail(inputValue.trim())) {
+        addRecipient(inputValue.trim());
+      }
     }, 150);
-  }, [handleClickOutside]);
+  }, [handleClickOutside, inputValue, isValidEmail, addRecipient]);
 
   return (
     <div className={cn('relative w-full', className)}>
