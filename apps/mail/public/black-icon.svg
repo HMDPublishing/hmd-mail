@@ -1,3 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="191" height="191" viewBox="0 0 191 191" fill="none">
-  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="140" fill="black">H</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#f5a623"/>
+  <rect x="20" y="18" width="20" height="64" rx="2" ry="2" fill="#fff"/>
+  <rect x="60" y="18" width="20" height="64" rx="2" ry="2" fill="#fff"/>
+  <rect x="40" y="45" width="20" height="10" fill="#1a1a1a"/>
 </svg>
