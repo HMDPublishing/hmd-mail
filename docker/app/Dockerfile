@@ -2,25 +2,8 @@
 # Base Stage: Alpine Linux with Bun
 # ========================================
 FROM node:22-alpine AS base
-
-# ========================================
-# Dependencies Stage: Install Dependencies
-# ========================================
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-# Install turbo globally
-RUN npm install -g pnpm
-RUN pnpm install -g turbo
-
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-RUN mkdir -p apps packages
-COPY apps/*/package.json ./apps/
-COPY packages/ ./packages/
-
-RUN pnpm install --prod --ignore-scripts
-
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 # ========================================
 # Builder Stage: Build the Application
@@ -40,9 +23,12 @@ ENV CI=true
 RUN pnpm install --frozen-lockfile
 
 # Set environment variables for build
+# VITE_PUBLIC_* vars use placeholder URLs that get replaced at runtime by entrypoint.sh
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production \
-    DOCKER_BUILD=true
+    DOCKER_BUILD=true \
+    VITE_PUBLIC_BACKEND_URL=http://REPLACE-BACKEND-URL.com \
+    VITE_PUBLIC_APP_URL=http://REPLACE-APP-URL.com
 
 # Build the application
 RUN cd apps/mail && pnpm run build
