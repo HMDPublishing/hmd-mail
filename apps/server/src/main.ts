@@ -1254,26 +1254,31 @@ export default class Entry extends WorkerEntrypoint<ZeroEnv> {
 
   private async sendSyncFailureAlert(failedAccounts: string[]) {
     try {
-      const resendKey = (this.env as any).RESEND_API_KEY;
-      if (!resendKey) {
-        console.error('[ALERT] Cannot send failure alert — RESEND_API_KEY not set');
+      const slackToken = (this.env as any).SLACK_BOT_TOKEN;
+      if (!slackToken) {
+        console.error('[ALERT] Cannot send failure alert — SLACK_BOT_TOKEN not set');
         return;
       }
-      const { Resend } = await import('resend');
-      const resendClient = new Resend(resendKey);
-      await resendClient.emails.send({
-        from: 'HMD Mail <no-reply@mail.hmdpublishing.com>',
-        to: 'hammad@hmdpublishing.com',
-        subject: `⚠️ HMD Mail: Sync renewal failed for ${failedAccounts.length} account(s)`,
-        html: `<h2>Email Sync Renewal Failed</h2>
-<p>The following accounts failed to renew their Gmail push notification subscription:</p>
-<ul>${failedAccounts.map((a) => `<li>${a}</li>`).join('')}</ul>
-<p>The hourly cron will retry automatically. If this persists, check the Cloudflare Worker logs.</p>
-<p><small>Sent at ${new Date().toISOString()}</small></p>`,
+      const accountList = failedAccounts.map((a) => `• ${a}`).join('\n');
+      const response = await fetch('https://slack.com/api/chat.postMessage', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${slackToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channel: 'C0AM00318NT',
+          text: `⚠️ *HMD Mail: Sync renewal failed for ${failedAccounts.length} account(s)*\n\n${accountList}\n\nThe hourly cron will retry automatically. Check Cloudflare Worker logs if this persists.`,
+        }),
       });
-      console.log('[ALERT] Sync failure alert email sent');
+      const result = await response.json() as { ok: boolean };
+      if (result.ok) {
+        console.log('[ALERT] Sync failure alert sent to Slack');
+      } else {
+        console.error('[ALERT] Slack API error:', result);
+      }
     } catch (alertError) {
-      console.error('[ALERT] Failed to send alert email:', alertError);
+      console.error('[ALERT] Failed to send Slack alert:', alertError);
     }
   }
 }
