@@ -1,7 +1,6 @@
 import { ReSummarizeThread, SummarizeMessage, SummarizeThread } from './brain.fallback.prompts';
 import { getSubscriptionFactory } from './factories/subscription-factory.registry';
 import { AiChatPrompt, StyledEmailAssistantSystemPrompt } from './prompts';
-import { resetConnection } from './server-utils';
 import { EPrompts, EProviders } from '../types';
 import { getPromptName } from '../pipelines';
 import { env } from '../env';
@@ -11,8 +10,9 @@ export const enableBrainFunction = async (connection: { id: string; providerId: 
     const subscriptionFactory = getSubscriptionFactory(connection.providerId);
     await subscriptionFactory.subscribe({ body: { connectionId: connection.id } });
   } catch (error) {
-    console.error(`Failed to enable brain function: ${error}`);
-    await resetConnection(connection.id);
+    console.error(`Failed to enable brain function for ${connection.id}: ${error}`);
+    // Do NOT call resetConnection here — it wipes OAuth tokens permanently.
+    // A transient error (network, GCP outage) would destroy the user's connection.
   }
 };
 

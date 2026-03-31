@@ -1,6 +1,5 @@
 import { BaseSubscriptionFactory, type SubscriptionData } from './base-subscription.factory';
 import { c, getNotificationsUrl } from '../../lib/utils';
-import { resetConnection } from '../server-utils';
 import jwt from '@tsndr/cloudflare-worker-jwt';
 import { env } from '../../env';
 import { connection } from '../../db/schema';
@@ -278,7 +277,8 @@ class GoogleSubscriptionFactory extends BaseSubscriptionFactory {
         );
         await this.setupGmailWatch(connectionData, pubSubName).catch(async (error) => {
           console.error('[SUBSCRIPTION] Error setting up Gmail watch:', { error });
-          await resetConnection(connectionData.id);
+          // Do NOT call resetConnection here — it wipes OAuth tokens permanently.
+          // The hourly cron will retry subscription setup automatically.
           throw error;
         });
 

@@ -1179,93 +1179,102 @@ export default class Entry extends WorkerEntrypoint<ZeroEnv> {
 
   private async processExpiredSubscriptions() {
     console.log('[SCHEDULED] Checking for expired subscriptions...');
-    const { db, conn } = createDb(this.env.HYPERDRIVE.connectionString);
-    const allAccounts = await db.query.connection.findMany({
-      where: (fields, { isNotNull, and }) =>
-        and(isNotNull(fields.accessToken), isNotNull(fields.refreshToken)),
-    });
-    await conn.end();
-    console.log('[SCHEDULED] allAccounts', allAccounts.length);
-    const now = new Date();
-    const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+    try {
+      const { db, conn } = createDb(this.env.HYPERDRIVE.connectionString);
+      const allAccounts = await db.query.connection.findMany({
+        where: (fields, { isNotNull, and }) =>
+          and(isNotNull(fields.accessToken), isNotNull(fields.refreshToken)),
+      });
+      await conn.end();
+      console.log('[SCHEDULED] allAccounts', allAccounts.length);
 
-    const expiredSubscriptions: Array<{ connectionId: string; providerId: EProviders }> = [];
-
-    const nowTs = Date.now();
-
-    const unsnoozeMap: Record<string, { threadIds: string[]; keyNames: string[] }> = {};
-
-    let cursor: string | undefined = undefined;
-    do {
-      const listResp: {
-        keys: { name: string; metadata?: { wakeAt?: string } }[];
-        cursor?: string;
-      } = await this.env.snoozed_emails.list({ cursor, limit: 1000 });
-      cursor = listResp.cursor;
-
-      for (const key of listResp.keys) {
-        try {
-          const wakeAtIso = key.metadata?.wakeAt as string | undefined;
-          if (!wakeAtIso) continue;
-          const wakeAt = new Date(wakeAtIso).getTime();
-          if (wakeAt > nowTs) continue;
-
-          const [threadId, connectionId] = key.name.split('__');
-          if (!threadId || !connectionId) continue;
-
-          if (!unsnoozeMap[connectionId]) {
-            unsnoozeMap[connectionId] = { threadIds: [], keyNames: [] };
-          }
-          unsnoozeMap[connectionId].threadIds.push(threadId);
-          unsnoozeMap[connectionId].keyNames.push(key.name);
-        } catch (error) {
-          console.error('Failed to prepare unsnooze for key', key.name, error);
-        }
+      if (allAccounts.length === 0) {
+        console.log('[SCHEDULED] No accounts with valid tokens found');
+        return;
       }
-    } while (cursor);
 
-    // await Promise.all(
-    //   Object.entries(unsnoozeMap).map(async ([connectionId, { threadIds, keyNames }]) => {
-    //     try {
-    //       const { stub: agent } = await getZeroAgent(connectionId, this.ctx);
-    //       await agent.queue('unsnoozeThreadsHandler', { connectionId, threadIds, keyNames });
-    //     } catch (error) {
-    //       console.error('Failed to enqueue unsnooze tasks', { connectionId, threadIds, error });
-    //     }
-    //   }),
-    // );
+      const now = new Date();
+      const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
 
-    await Promise.all(
-      allAccounts.map(async ({ id, providerId }) => {
-        const lastSubscribed = await this.env.gmail_sub_age.get(`${id}__${providerId}`);
+      const expiredSubscriptions: Array<{ connectionId: string; providerId: EProviders; email: string }> = [];
 
-        if (lastSubscribed) {
-          const subscriptionDate = new Date(lastSubscribed);
-          if (subscriptionDate < fiveDaysAgo) {
-            console.log(`[SCHEDULED] Found expired Google subscription for connection: ${id}`);
-            expiredSubscriptions.push({ connectionId: id, providerId: providerId as EProviders });
-          }
-        } else {
-          expiredSubscriptions.push({ connectionId: id, providerId: providerId as EProviders });
-        }
-      }),
-    );
-
-    // Send expired subscriptions to queue for renewal
-    if (expiredSubscriptions.length > 0) {
-      console.log(
-        `[SCHEDULED] Sending ${expiredSubscriptions.length} expired subscriptions to renewal queue`,
-      );
       await Promise.all(
-        expiredSubscriptions.map(async ({ connectionId, providerId }) => {
-          await this.env.subscribe_queue.send({ connectionId, providerId });
+        allAccounts.map(async ({ id, providerId, email }) => {
+          try {
+            const lastSubscribed = await this.env.gmail_sub_age.get(`${id}__${providerId}`);
+
+            if (lastSubscribed) {
+              const subscriptionDate = new Date(lastSubscribed);
+              if (subscriptionDate < fiveDaysAgo) {
+                console.log(`[SCHEDULED] Found expired Google subscription for connection: ${id} (${email})`);
+                expiredSubscriptions.push({ connectionId: id, providerId: providerId as EProviders, email: email || id });
+              }
+            } else {
+              console.log(`[SCHEDULED] No subscription record for connection: ${id} (${email})`);
+              expiredSubscriptions.push({ connectionId: id, providerId: providerId as EProviders, email: email || id });
+            }
+          } catch (error) {
+            console.error(`[SCHEDULED] Error checking subscription for ${id}:`, error);
+          }
         }),
       );
-    }
 
-    console.log(
-      `[SCHEDULED] Processed ${allAccounts.length} accounts, found ${expiredSubscriptions.length} expired subscriptions`,
-    );
+      // Send expired subscriptions to queue for renewal
+      if (expiredSubscriptions.length > 0) {
+        console.log(
+          `[SCHEDULED] Sending ${expiredSubscriptions.length} expired subscriptions to renewal queue`,
+        );
+        const failedRenewals: string[] = [];
+        await Promise.all(
+          expiredSubscriptions.map(async ({ connectionId, providerId, email }) => {
+            try {
+              await this.env.subscribe_queue.send({ connectionId, providerId });
+            } catch (error) {
+              console.error(`[SCHEDULED] Failed to queue renewal for ${connectionId} (${email}):`, error);
+              failedRenewals.push(email);
+            }
+          }),
+        );
+
+        // Send alert email if any renewals failed
+        if (failedRenewals.length > 0) {
+          await this.sendSyncFailureAlert(failedRenewals);
+        }
+      }
+
+      console.log(
+        `[SCHEDULED] Processed ${allAccounts.length} accounts, found ${expiredSubscriptions.length} expired subscriptions`,
+      );
+    } catch (error) {
+      console.error('[SCHEDULED] Critical error in processExpiredSubscriptions:', error);
+      // Send alert for complete cron failure
+      await this.sendSyncFailureAlert(['ALL ACCOUNTS - cron handler crashed: ' + (error as Error).message]);
+    }
+  }
+
+  private async sendSyncFailureAlert(failedAccounts: string[]) {
+    try {
+      const resendKey = (this.env as any).RESEND_API_KEY;
+      if (!resendKey) {
+        console.error('[ALERT] Cannot send failure alert — RESEND_API_KEY not set');
+        return;
+      }
+      const { Resend } = await import('resend');
+      const resendClient = new Resend(resendKey);
+      await resendClient.emails.send({
+        from: 'HMD Mail <no-reply@mail.hmdpublishing.com>',
+        to: 'hammad@hmdpublishing.com',
+        subject: `⚠️ HMD Mail: Sync renewal failed for ${failedAccounts.length} account(s)`,
+        html: `<h2>Email Sync Renewal Failed</h2>
+<p>The following accounts failed to renew their Gmail push notification subscription:</p>
+<ul>${failedAccounts.map((a) => `<li>${a}</li>`).join('')}</ul>
+<p>The hourly cron will retry automatically. If this persists, check the Cloudflare Worker logs.</p>
+<p><small>Sent at ${new Date().toISOString()}</small></p>`,
+      });
+      console.log('[ALERT] Sync failure alert email sent');
+    } catch (alertError) {
+      console.error('[ALERT] Failed to send alert email:', alertError);
+    }
   }
 }
 
