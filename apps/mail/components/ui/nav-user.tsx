@@ -397,7 +397,7 @@ export function NavUser() {
                   </div>
                 </div>
               )}
-              {otherConnections.slice(0, 2).map((connection) => (
+              {otherConnections.slice(0, 3).map((connection) => (
                 <Tooltip key={connection.id}>
                   <TooltipTrigger asChild>
                     <div
