@@ -227,7 +227,7 @@ class GoogleSubscriptionFactory extends BaseSubscriptionFactory {
     console.log(
       `[SUBSCRIPTION] Setting up Gmail watch for connection: ${connectionData.id} ${topicName} projects/${serviceAccount.project_id}/topics/${topicName}`,
     );
-    console.log(`[SUBSCRIPTION] Service Account: ${serviceAccount.client_email}`, serviceAccount);
+    console.log(`[SUBSCRIPTION] Service Account: ${serviceAccount.client_email}`);
 
     const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/watch', {
       method: 'POST',
