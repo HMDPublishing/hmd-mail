@@ -57,7 +57,7 @@ import { ToolOrchestrator } from './orchestrator';
 import { eq, desc, isNotNull } from 'drizzle-orm';
 import migrations from './db/drizzle/migrations';
 import { getPromptName } from '../../pipelines';
-import { anthropic } from '@ai-sdk/anthropic';
+import { anthropic as _anthropic } from '@ai-sdk/anthropic';
 import { connection } from '../../db/schema';
 import type { WSMessage } from 'partyserver';
 import { tools as authTools } from './tools';
@@ -68,13 +68,12 @@ import { openai } from '@ai-sdk/openai';
 import * as schema from './db/schema';
 import { threads } from './db/schema';
 import { Effect, pipe } from 'effect';
-import { groq } from '@ai-sdk/groq';
+import { groq as _groq } from '@ai-sdk/groq';
 import { createDb } from '../../db';
 import type { Message } from 'ai';
 import { create } from './db';
 
 const decoder = new TextDecoder();
-const maxCount = 20;
 
 // Error types for getUserTopics
 export class StorageError extends Error {
@@ -724,6 +723,7 @@ export class ZeroDriver extends DurableObject<ZeroEnv> {
       return;
     }
 
+    const maxCount = parseInt(this.env.THREAD_SYNC_MAX_COUNT || '500', 10);
     const threadCount = await this.getThreadCount();
     if (threadCount < maxCount) {
       console.log(

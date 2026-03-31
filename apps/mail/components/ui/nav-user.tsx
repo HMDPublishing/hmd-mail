@@ -132,7 +132,7 @@ export function NavUser() {
       setLoading(true, m['common.navUser.switchingAccounts']());
       setThreadId(null);
       await setDefaultConnection({ connectionId });
-      queryClient.clear();
+      await queryClient.invalidateQueries();
       await queryClient.refetchQueries({ queryKey: trpc.mail.listThreads.infiniteQueryKey() });
     } catch (error) {
       console.error('Error switching accounts:', error);

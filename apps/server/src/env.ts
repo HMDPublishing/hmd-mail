@@ -35,9 +35,9 @@ export type ZeroEnv = {
   ELEVENLABS_API_KEY: '1234567890';
   DISABLE_CALLS: 'true' | '';
   DROP_AGENT_TABLES: 'false';
-  THREAD_SYNC_MAX_COUNT: '5' | '20' | '10';
+  THREAD_SYNC_MAX_COUNT: string;
   THREAD_SYNC_LOOP: 'false' | 'true';
-  DISABLE_WORKFLOWS: 'true';
+  DISABLE_WORKFLOWS: string;
   AUTORAG_ID: '';
   USE_OPENAI: 'true';
   CLOUDFLARE_ACCOUNT_ID: '';
@@ -70,7 +70,6 @@ export type ZeroEnv = {
   GROQ_API_KEY: string;
   EARLY_ACCESS_ENABLED: string;
   GOOGLE_GENERATIVE_AI_API_KEY: string;
-  AUTUMN_SECRET_KEY?: string;
   AI_SYSTEM_PROMPT: string;
   PERPLEXITY_API_KEY: string;
   TWILIO_ACCOUNT_SID: string;

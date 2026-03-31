@@ -826,7 +826,7 @@ const app = new Hono<HonoContext>()
     const results: Record<string, string> = {};
     try {
       const { db: _db, conn } = createDb(env.HYPERDRIVE.connectionString);
-      const r = await _db.execute(sql`SELECT 1 as ok`);
+      await _db.execute(sql`SELECT 1 as ok`);
       results.db = 'ok';
       c.executionCtx.waitUntil(conn.end());
     } catch (e: any) { results.db = 'FAIL: ' + e.message; }
@@ -1264,7 +1264,7 @@ export default class Entry extends WorkerEntrypoint<ZeroEnv> {
     }
 
     console.log(
-      `[SCHEDULED] Processed ${allAccounts.keys.length} accounts, found ${expiredSubscriptions.length} expired subscriptions`,
+      `[SCHEDULED] Processed ${allAccounts.length} accounts, found ${expiredSubscriptions.length} expired subscriptions`,
     );
   }
 }

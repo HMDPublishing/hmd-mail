@@ -106,6 +106,9 @@
       "name": "sync-threads-coordinator-workflow-hmd"
     }
   ],
+  "triggers": {
+    "crons": ["0 0 * * *", "0 * * * *"]
+  },
   "hyperdrive": [
     { "binding": "HYPERDRIVE", "id": "38fff605dce144e0be69772e53d4af7e" }
   ]

@@ -7,14 +7,13 @@ import {
   SuperSearchEmail,
   WelcomeEmail,
 } from './react-emails/email-sequences';
-import { createAuthMiddleware, phoneNumber, jwt, bearer, mcp } from 'better-auth/plugins';
+import { createAuthMiddleware, jwt, bearer, mcp } from 'better-auth/plugins';
 import { type Account, betterAuth, type BetterAuthOptions } from 'better-auth';
 import { getBrowserTimezone, isValidTimezone } from './timezones';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { getZeroDB, resetConnection } from './server-utils';
 import { getSocialProviders } from './auth-providers';
-import { redis, resend, twilio } from './services';
-import { dubAnalytics } from '@dub/better-auth';
+import { redis, resend } from './services';
 import { defaultUserSettings } from './schemas';
 import { disableBrainFunction } from './brain';
 import { APIError } from 'better-auth/api';
@@ -23,7 +22,6 @@ import { createDriver } from './driver';
 import { createDb } from '../db';
 import { Effect } from 'effect';
 import { env } from '../env';
-import { Dub } from 'dub';
 
 const scheduleCampaign = (userInfo: { address: string; name: string }) =>
   Effect.gen(function* () {
@@ -34,7 +32,7 @@ const scheduleCampaign = (userInfo: { address: string; name: string }) =>
       Effect.promise(() =>
         resendService.emails
           .send({
-            from: '0.email <onboarding@0.email>',
+            from: 'HMD Mail <no-reply@mail.hmdpublishing.com>',
             to: userInfo.address,
             subject,
             react: react as any,
@@ -176,7 +174,7 @@ export const createAuth = () => {
         async sendDeleteAccountVerification(data) {
           const verificationUrl = data.url;
           await resend().emails.send({
-            from: '0.email <no-reply@0.email>',
+            from: 'HMD Mail <no-reply@mail.hmdpublishing.com>',
             to: data.user.email,
             subject: 'Delete your account',
             html: `<h2>Delete Your Account</h2><p>Click the link below to delete your account:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
