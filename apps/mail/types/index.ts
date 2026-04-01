@@ -113,6 +113,7 @@ export type ThreadProps = {
   message: { id: string; historyId?: string | null };
   onClick?: (message: ParsedMessage) => () => void;
   isKeyboardFocused?: boolean;
+  getNextThreadId?: (currentId: string, focusedIndex: number | null) => string | null;
 };
 
 export interface IOutgoingMessage {

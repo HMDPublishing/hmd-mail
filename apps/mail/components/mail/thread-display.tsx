@@ -33,8 +33,6 @@ import type { ParsedMessage, Attachment } from '@/types';
 import { useAnimations } from '@/hooks/use-animations';
 import { AnimatePresence, motion } from 'motion/react';
 import { MailDisplaySkeleton } from './mail-skeleton';
-import { useTRPC } from '@/providers/query-provider';
-import { useMutation } from '@tanstack/react-query';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { cleanHtml } from '@/lib/email-utils';
@@ -158,7 +156,7 @@ export function ThreadDisplay() {
 
   const folder = params?.folder ?? 'inbox';
   const [id, setThreadId] = useQueryState('threadId');
-  const { data: emailData, isLoading, refetch: refetchThread } = useThread(id ?? null);
+  const { data: emailData, isLoading } = useThread(id ?? null);
   const [, items] = useThreads();
   const [isStarred, setIsStarred] = useState(false);
   const [isImportant, setIsImportant] = useState(false);
@@ -183,8 +181,6 @@ export function ThreadDisplay() {
   const [, setDraftId] = useQueryState('draftId');
 
   const [focusedIndex, setFocusedIndex] = useAtom(focusedIndexAtom);
-  const trpc = useTRPC();
-  const { mutateAsync: toggleImportant } = useMutation(trpc.mail.toggleImportant.mutationOptions());
   const [, setIsComposeOpen] = useQueryState('isComposeOpen');
 
   // Get optimistic state for this thread
@@ -238,7 +234,8 @@ export function ThreadDisplay() {
     setDraftId(null);
   }, [setThreadId, setMode, setActiveReplyId, setDraftId]);
 
-  const { optimisticMoveThreadsTo } = useOptimisticActions();
+  const { optimisticMoveThreadsTo, optimisticToggleStar, optimisticToggleImportant } =
+    useOptimisticActions();
 
   const moveThreadTo = useCallback(
     async (destination: ThreadDestination) => {
@@ -253,8 +250,6 @@ export function ThreadDisplay() {
     },
     [id, folder, optimisticMoveThreadsTo, handleNext, setMode, setActiveReplyId, setDraftId],
   );
-
-  const { optimisticToggleStar } = useOptimisticActions();
 
   const handleToggleStar = useCallback(async () => {
     if (!emailData || !id) return;
@@ -648,16 +643,12 @@ export function ThreadDisplay() {
     }
   };
 
-  const handleToggleImportant = useCallback(async () => {
+  const handleToggleImportant = useCallback(() => {
     if (!emailData || !id) return;
-    await toggleImportant({ ids: [id] });
-    await refetchThread();
-    if (isImportant) {
-      toast.success(m['common.mail.markedAsImportant']());
-    } else {
-      toast.error('Failed to mark as important');
-    }
-  }, [emailData, id]);
+    const newImportantState = !isImportant;
+    optimisticToggleImportant([id], newImportantState);
+    setIsImportant(newImportantState);
+  }, [emailData, id, isImportant, optimisticToggleImportant]);
 
   // Set initial star state based on email data
   useEffect(() => {

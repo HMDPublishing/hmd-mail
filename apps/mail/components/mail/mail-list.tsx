@@ -54,13 +54,13 @@ const Thread = memo(
     onClick,
     isKeyboardFocused,
     index,
+    getNextThreadId,
   }: ThreadProps & { index?: number }) {
     const [searchValue] = useSearchValue();
     const { folder } = useParams<{ folder: string }>();
-    const [, threads] = useThreads();
     const [threadId] = useQueryState('threadId');
     const { data: getThreadData, isGroupThread, latestDraft } = useThread(message.id);
-    const [id, setThreadId] = useQueryState('threadId');
+    const [, setThreadId] = useQueryState('threadId');
     const [focusedIndex, setFocusedIndex] = useAtom(focusedIndexAtom);
 
     const { latestMessage, idToUse, cleanName } = useMemo(() => {
@@ -163,17 +163,16 @@ const Thread = memo(
 
     const handleNext = useCallback(
       (id: string) => {
-        if (!id || !threads.length || focusedIndex === null) return setThreadId(null);
-        if (focusedIndex < threads.length - 1) {
-          const nextThread = threads[focusedIndex];
-          if (nextThread) {
-            setThreadId(nextThread.id);
-            // Don't clear activeReplyId - let ThreadDisplay handle Reply All auto-opening
-            setFocusedIndex(focusedIndex);
-          }
+        if (!id || !getNextThreadId || focusedIndex === null) return setThreadId(null);
+        const nextId = getNextThreadId(id, focusedIndex);
+        if (nextId) {
+          setThreadId(nextId);
+          setFocusedIndex(focusedIndex);
+        } else {
+          setThreadId(null);
         }
       },
-      [threads, id, focusedIndex],
+      [getNextThreadId, focusedIndex, setThreadId, setFocusedIndex],
     );
 
     const moveThreadTo = useCallback(
@@ -554,12 +553,13 @@ const Thread = memo(
     ) : null;
   },
   (prev, next) => {
-    const isSameMessage =
+    return (
       prev.message.id === next.message.id &&
       prev.isKeyboardFocused === next.isKeyboardFocused &&
       prev.index === next.index &&
-      Object.is(prev.onClick, next.onClick);
-    return isSameMessage;
+      Object.is(prev.onClick, next.onClick) &&
+      Object.is(prev.getNextThreadId, next.getNextThreadId)
+    );
   },
 );
 
@@ -707,6 +707,10 @@ export const MailList = memo(
   function MailList() {
     const { folder } = useParams<{ folder: string }>();
     const { data: settingsData } = useSettings();
+    const settingsRef = useRef(settingsData);
+    useEffect(() => {
+      settingsRef.current = settingsData;
+    }, [settingsData]);
     const [, setThreadId] = useQueryState('threadId');
     const [, setDraftId] = useQueryState('draftId');
     const [searchValue, setSearchValue] = useSearchValue();
@@ -778,21 +782,17 @@ export const MailList = memo(
         return 'mass';
       }
       if (isAltPressed && isShiftPressed) {
-        console.log('Select All Below mode activated'); // Debug log
         return 'selectAllBelow';
       }
       return 'single';
     }, [isKeyPressed]);
 
-    const [, setActiveReplyId] = useQueryState('activeReplyId');
     const [, setMail] = useMail();
 
     const handleSelectMail = useCallback(
       (message: ParsedMessage) => {
         const itemId = message.threadId ?? message.id;
         const currentMode = getSelectMode();
-        console.log('Selection mode:', currentMode, 'for item:', itemId);
-
         setMail((prevMail) => {
           const mail = prevMail;
           const clickedIndex = itemsRef.current.findIndex((item) => item.id === itemId);
@@ -803,29 +803,18 @@ export const MailList = memo(
               const newSelected = mail.bulkSelected.includes(itemId)
                 ? mail.bulkSelected.filter((id) => id !== itemId)
                 : [...mail.bulkSelected, itemId];
-              console.log('Mass selection mode - selected items:', newSelected.length);
               return { ...mail, bulkSelected: newSelected };
             }
             case 'selectAllBelow': {
               const clickedIndex = itemsRef.current.findIndex((item) => item.id === itemId);
-              console.log(
-                'SelectAllBelow - clicked index:',
-                clickedIndex,
-                'total items:',
-                itemsRef.current.length,
-              );
-
               if (clickedIndex !== -1) {
                 const itemsBelow = itemsRef.current.slice(clickedIndex);
                 const idsBelow = itemsBelow.map((item) => item.id);
-                console.log('Selecting all items below - count:', idsBelow.length);
                 return { ...mail, bulkSelected: idsBelow };
               }
-              console.log('Item not found in list, selecting just this item');
               return { ...mail, bulkSelected: [itemId] };
             }
             case 'range': {
-              console.log('Range selection mode');
               if (anchorIndex === null) {
                 return { ...mail, bulkSelected: [itemId] };
               }
@@ -837,7 +826,6 @@ export const MailList = memo(
               return { ...mail, bulkSelected: newSelected };
             }
             default: {
-              console.log('Single selection mode');
               return { ...mail, bulkSelected: [itemId] };
             }
           }
@@ -848,13 +836,22 @@ export const MailList = memo(
 
     const [, setFocusedIndex] = useAtom(focusedIndexAtom);
 
+    const getNextThreadId = useCallback(
+      (currentId: string, currentFocusedIndex: number | null) => {
+        if (!currentId || !itemsRef.current.length || currentFocusedIndex === null) return null;
+        if (currentFocusedIndex < itemsRef.current.length - 1) {
+          return itemsRef.current[currentFocusedIndex]?.id ?? null;
+        }
+        return null;
+      },
+      [],
+    );
+
     const { optimisticMarkAsRead } = useOptimisticActions();
     const handleMailClick = useCallback(
       (message: ParsedMessage) => async () => {
         const mode = getSelectMode();
-        const autoRead = settingsData?.settings?.autoRead ?? true;
-        console.log('Mail click with mode:', mode);
-
+        const autoRead = settingsRef.current?.settings?.autoRead ?? true;
         if (mode !== 'single') {
           const messageThreadId = message.threadId ?? message.id;
           const clickedIndex = itemsRef.current.findIndex((item) => item.id === messageThreadId);
@@ -882,8 +879,6 @@ export const MailList = memo(
         optimisticMarkAsRead,
         setThreadId,
         setDraftId,
-        settingsData,
-        setActiveReplyId,
       ],
     );
 
@@ -914,36 +909,19 @@ export const MailList = memo(
       (index: number) => {
         const item = filteredItems[index];
         return item ? (
-          <>
-            <Comp
-              key={item.id}
-              message={item}
-              isKeyboardFocused={focusedIndex === index && keyboardActive}
-              index={index}
-              onClick={handleMailClick}
-            />
-            {index === filteredItems.length - 1 && (isFetchingNextPage || isFetchingMail) ? (
-              <div className="flex w-full justify-center py-4">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent dark:border-white dark:border-t-transparent" />
-              </div>
-            ) : null}
-          </>
+          <Comp
+            key={item.id}
+            message={item}
+            isKeyboardFocused={focusedIndex === index && keyboardActive}
+            index={index}
+            onClick={handleMailClick}
+            getNextThreadId={getNextThreadId}
+          />
         ) : (
           <></>
         );
       },
-      [
-        folder,
-        filteredItems,
-        focusedIndex,
-        keyboardActive,
-        isFetchingMail,
-        isFetchingNextPage,
-        handleMailClick,
-        isLoading,
-        isFetching,
-        hasNextPage,
-      ],
+      [filteredItems, focusedIndex, keyboardActive, handleMailClick],
     );
 
     return (
@@ -1000,6 +978,11 @@ export const MailList = memo(
                 >
                   {vListRenderer}
                 </VList>
+                {(isFetchingNextPage || isFetchingMail) && (
+                  <div className="flex w-full justify-center py-4">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-900 border-t-transparent dark:border-white dark:border-t-transparent" />
+                  </div>
+                )}
               </div>
             )}
           </>
