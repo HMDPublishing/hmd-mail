@@ -189,7 +189,7 @@ export class WorkflowEngine {
 export const createDefaultWorkflows = (): WorkflowEngine => {
   const engine = new WorkflowEngine();
 
-  const autoDraftWorkflow: WorkflowDefinition = {
+  const _autoDraftWorkflow: WorkflowDefinition = {
     name: 'auto-draft-generation',
     description: 'Automatically generates drafts for threads that require responses',
     steps: [
@@ -328,7 +328,7 @@ export const createDefaultWorkflows = (): WorkflowEngine => {
     ],
   };
 
-  const labelGenerationWorkflow: WorkflowDefinition = {
+  const _labelGenerationWorkflow: WorkflowDefinition = {
     name: 'label-generation',
     description: 'Generates and applies labels to threads',
     steps: [
@@ -373,10 +373,8 @@ export const createDefaultWorkflows = (): WorkflowEngine => {
     ],
   };
 
-  engine.registerWorkflow(autoDraftWorkflow);
   engine.registerWorkflow(vectorizationWorkflow);
   engine.registerWorkflow(threadSummaryWorkflow);
-  engine.registerWorkflow(labelGenerationWorkflow);
 
   return engine;
 };
